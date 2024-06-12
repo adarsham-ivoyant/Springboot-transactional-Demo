@@ -8,6 +8,7 @@ import com.ivoyant.springboottransactionaldemo.exception.PaymentException;
 import com.ivoyant.springboottransactionaldemo.repository.OrderRepository;
 import com.ivoyant.springboottransactionaldemo.repository.PaymentRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -24,6 +25,7 @@ public class OrderServiceImpl implements OrderService{
     }
 
     @Override
+    @Transactional
     public OrderResponse placeOrder(OrderRequest orderRequest) {
 
         Order order = orderRequest.getOrder();
@@ -33,9 +35,17 @@ public class OrderServiceImpl implements OrderService{
 
         Payment payment = orderRequest.getPayment();
 
-        if(!payment.getType.equals("DEBIT")){
+        if(!payment.getType().equals("DEBIT")){
             throw new PaymentException("Payment card type do not support");
         }
-        return null;
+
+        payment.setOrderId(order.getId());
+        paymentRepository.save(payment);
+
+        OrderResponse orderResponse = new OrderResponse();
+        orderResponse.setOrderTackingNumber(order.getOrderTackingNumber());
+        orderResponse.setStatus(order.getStatus());
+        orderResponse.setMessage("SUCCESS");
+        return orderResponse;
     }
 }
